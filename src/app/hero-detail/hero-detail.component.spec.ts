@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from "@angular/core/testing"
+import { async, ComponentFixture, fakeAsync, flush, TestBed, tick } from "@angular/core/testing"
 import { ActivatedRoute } from "@angular/router";
 import { HeroService } from "../hero.service";
 import { HeroDetailComponent } from "./hero-detail.component"
@@ -37,4 +37,29 @@ describe('HeroDetail', () => {
 
         expect(fixture.nativeElement.querySelector('h2').textContent).toContain("DEREK")
     })
+
+    // fakeAsync and async both solve the problem of working with async code, but ONLY fakeAsync works with Promises and timeouts. anync does not work with timeouts
+    it('should call updateHero when save is called', fakeAsync(() => {
+        mockHeroService.updateHero.and.returnValue(of({}));
+        fixture.detectChanges();
+
+        fixture.componentInstance.save2();
+        // tick takes in how long you want to fast forward
+        // tick(250);
+
+        // tick is simpler and does more work for you to finish up those async calls on the stack
+        flush();
+        expect(mockHeroService.updateHero).toHaveBeenCalled();
+    }))
+
+    it('should call updateHero when save is called with promises', async(() => {
+        mockHeroService.updateHero.and.returnValue(of({}));
+        fixture.detectChanges();
+
+        fixture.componentInstance.save();
+
+        fixture.whenStable().then(() => {
+            expect(mockHeroService.updateHero).toHaveBeenCalled();
+        })
+    }))
 })
